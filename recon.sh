@@ -121,6 +121,7 @@ verbose(){
     echo -e "\n------------------\n > Repositories <\n------------------ "
     $s cat /etc/apt/sources.list | grep -Ev "##|#"
     sleep $t
+
 }
 
 # Get User Input to get sleep time and Type

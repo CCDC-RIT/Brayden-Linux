@@ -6,6 +6,8 @@ find /etc/systemd/system -name "*.service" -exec cat {} + | grep -E "ExecStart|D
 sudo tcpdump -i ens33 -v --direction=out not host 127.0.0.1 and not port 443
 sudo tshark -i ens33 
 
-# All Files Modified
+# All Files Modified Last 10 Minutes
 find / -xdev -mmin -10 -ls 2> /dev/null
 
+# Check for backdoored binaries
+for i in $(dpkg -l | awk '{print $2}'); do sudo dpkg --verify $i; done
