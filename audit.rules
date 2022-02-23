@@ -1,0 +1,10 @@
+# Sources #
+# https://access.redhat.com/documentation/en-us/red_hat_enterprise_linux/7/html/security_guide/sec-defining_audit_rules_and_controls
+
+# Check Write access to sshd sshd config
+-w /etc/ssh/sshd_config -p warx -k sshd_config
+
+# Check any commands run as root
+-a exit,always -F arch=b64 -F euid=0 -S execve -k  root-execve
+-a exit,always -F arch=b64 -F euid=>1000 -S execve -k  all-execve
+
