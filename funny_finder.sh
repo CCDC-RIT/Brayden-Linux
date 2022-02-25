@@ -49,7 +49,7 @@ kits() {
     do
         # Does this have the signature
         if [[ $(cat $i 2>/dev/null | grep -E 'OE' 2>/dev/null) ]]; then   
-            echo "Detected Kernel Loading : $i"
+            echo "Detected Tainting : $i"
         else
             continue
         fi

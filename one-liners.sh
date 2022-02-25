@@ -10,7 +10,7 @@ sudo tshark -i ens33
 find / -xdev -mmin -10 -ls 2> /dev/null
 
 # Check for backdoored binaries
-for i in $(dpkg -l | awk '{print $2}'); do sudo dpkg --verify $i; done
+for i in $(dpkg --get-selections | awk '{print $1}'); do sudo dpkg --verify $i; done
 
 # Find Potential Rootkit Persistance
 find /etc/init.d -exec cat {} + | grep -E 'insmod|modprobe' 2> /dev/null
