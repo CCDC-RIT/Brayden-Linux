@@ -31,11 +31,24 @@ kits() {
     # Find all files in init.d and service files
     mapfile -d $'\0' files < <(sudo find / \( -path "/etc/init.d/*" -o -path "/etc/systemd/system/*" \) -print0 2>/dev/null)
 
+    # Find The other thing enzo showed me
+    mapfile -d $'\0' files2 < <(sudo find /sys/module/ -iname "taint" -print0 2>/dev/null)
+
     # Check each file
     for i in "${files[@]}"
     do
         # Does this have the string "insmod" or "modprobe" print if so
         if [[ $(strings $i 2>/dev/null | grep -E 'insmod|modprobe' 2>/dev/null) ]]; then   
+            echo "Detected Kernel Loading : $i"
+        else
+            continue
+        fi
+    done
+
+    for i in "${files2[@]}"
+    do
+        # Does this have the signature
+        if [[ $(cat $i 2>/dev/null | grep -E 'OE' 2>/dev/null) ]]; then   
             echo "Detected Kernel Loading : $i"
         else
             continue
