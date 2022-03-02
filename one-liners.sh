@@ -16,6 +16,8 @@ for i in $(dpkg --get-selections | awk '{print $1}'); do sudo dpkg --verify $i; 
 find /etc/init.d -exec cat {} + | grep -E 'insmod|modprobe' 2> /dev/null
 find /etc/systemd/system -exec cat {} + | grep -E 'insmod|modprobe' 2> /dev/null
 
+# Find Autoruns
+find /var/spool/cron/crontabs/ -printf '\n%p\n---------------------------\n' -exec cat {} \; | grep -Ev '#'
 
 # TODO
 AuditD - AUSomthing
