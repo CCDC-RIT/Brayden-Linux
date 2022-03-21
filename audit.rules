@@ -11,22 +11,7 @@
 # Modified by Brayden Werenr
 #
 # Created  : 2017/12/05
-# Modified : 2022/03/01
-# Based on rules published here:
-#   Gov.uk auditd rules
-#   	https://github.com/gds-operations/puppet-auditd/pull/1
-# 	CentOS 7 hardening
-# 		https://highon.coffee/blog/security-harden-centos-7/#auditd---audit-daemon
-# 	Linux audit repo
-# 		https://github.com/linux-audit/audit-userspace/tree/master/rules
-# 	Auditd high performance linux auditing
-# 		https://linux-audit.com/tuning-auditd-high-performance-linux-auditing/
-#
-# Further rules
-# 	For PCI DSS compliance see:
-# 		https://github.com/linux-audit/audit-userspace/blob/master/rules/30-pci-dss-v31.rules
-# 	For NISPOM compliance see:
-# 		https://github.com/linux-audit/audit-userspace/blob/master/rules/30-nispom.rules
+# Modified : 2022/03/21
 
 # Remove any existing rules
 -D
@@ -104,11 +89,11 @@
 -w /etc/sysctl.d -p wa -k sysctl
 
 ## Kernel module loading and unloading
--a always,exit -F perm=x -F auid!=-1 -F path=/sbin/insmod -k modules
--a always,exit -F perm=x -F auid!=-1 -F path=/sbin/modprobe -k modules
--a always,exit -F perm=x -F auid!=-1 -F path=/sbin/rmmod -k modules
--a always,exit -F arch=b64 -S finit_module -S init_module -S delete_module -F auid!=-1 -k modules
--a always,exit -F arch=b32 -S finit_module -S init_module -S delete_module -F auid!=-1 -k modules
+-a always,exit -F perm=x -F auid!=-1 -F path=/sbin/insmod -k kernel_modules 
+-a always,exit -F perm=x -F auid!=-1 -F path=/sbin/modprobe -k kernel_modules
+-a always,exit -F perm=x -F auid!=-1 -F path=/sbin/rmmod -k kernel_modules 
+-a always,exit -F arch=b64 -S finit_module -S init_module -S delete_module -F auid!=-1 -k kernel_modules 
+-a always,exit -F arch=b32 -S finit_module -S init_module -S delete_module -F auid!=-1 -k kernel_modules 
 
 ## Modprobe configuration
 -w /etc/modprobe.conf -p wa -k modprobe
@@ -119,8 +104,8 @@
 -a always,exit -F arch=b32 -S sys_kexec_load -k KEXEC
 
 ## Special files
--a always,exit -F arch=b32 -S mknod -S mknodat -k specialfiles
--a always,exit -F arch=b64 -S mknod -S mknodat -k specialfiles
+-a always,exit -F arch=b32 -S mknod -S mknodat -k mknod
+-a always,exit -F arch=b64 -S mknod -S mknodat -k mknod
 
 ## Time
 -a always,exit -F arch=b32 -F uid!=ntp -S adjtimex -S settimeofday -S clock_settime -k time
@@ -151,8 +136,8 @@
 -w /etc/security/opasswd -k opasswd
 
 ## Sudoers file changes
--w /etc/sudoers -p wa -k actions
--w /etc/sudoers.d/ -p wa -k actions
+-w /etc/sudoers -p wa -k sudo_file 
+-w /etc/sudoers.d/ -p wa -k sudo_file 
 
 ## Passwd
 -w /usr/bin/passwd -p x -k passwd_modification
@@ -179,12 +164,12 @@
 -a always,exit -F arch=b64 -S sethostname -S setdomainname -k network_modifications
 
 ### Successful IPv4 Connections
--a always,exit -F arch=b64 -S connect -F a2=16 -F success=1 -F key=network_connect_4
--a always,exit -F arch=b32 -S connect -F a2=16 -F success=1 -F key=network_connect_4
+-a always,exit -F arch=b64 -S connect -F a2=16 -F success=1 -F key=ipv4_conn
+-a always,exit -F arch=b32 -S connect -F a2=16 -F success=1 -F key=ipv4_conn
 
 ### Successful IPv6 Connections
--a always,exit -F arch=b64 -S connect -F a2=28 -F success=1 -F key=network_connect_6
--a always,exit -F arch=b32 -S connect -F a2=28 -F success=1 -F key=network_connect_6
+-a always,exit -F arch=b64 -S connect -F a2=28 -F success=1 -F key=ipv6_conn
+-a always,exit -F arch=b32 -S connect -F a2=28 -F success=1 -F key=ipv6_conn
 
 ### Changes to other files
 -w /etc/hosts -p wa -k network_modifications
@@ -203,7 +188,7 @@
 -w /etc/ld.so.conf.d -p wa -k libpath
 
 ## Systemwide library preloads (LD_PRELOAD)
--w /etc/ld.so.preload -p wa -k systemwide_preloads
+-w /etc/ld.so.preload -p wa -k ld_preload 
 
 ## Pam configuration
 -w /etc/pam.d/ -p wa -k pam
@@ -224,7 +209,7 @@
 -w /etc/ssh/sshd_config.d -k sshd
 
 ## root ssh key tampering
--w /root/.ssh -p wa -k rootkey
+-w /root/.ssh -p wa -k root_ssh 
 
 # Systemd
 -w /bin/systemctl -p x -k systemd
@@ -292,25 +277,17 @@
 -w /bin/nc.traditional -p x -k susp_activity
 
 ## Sbin suspicious activity
--w /sbin/iptables -p x -k sbin_susp
--w /sbin/ip6tables -p x -k sbin_susp
--w /sbin/ifconfig -p x -k sbin_susp
--w /usr/sbin/arptables -p x -k sbin_susp
--w /usr/sbin/ebtables -p x -k sbin_susp
--w /sbin/xtables-nft-multi -p x -k sbin_susp
--w /usr/sbin/nft -p x -k sbin_susp
--w /usr/sbin/ufw -p x -k sbin_susp
+-w /sbin/iptables -p x -k firewall_sbin
+-w /sbin/ip6tables -p x -k firewall_sbin
+-w /sbin/ifconfig -p x -k firewall_sbin
+-w /usr/sbin/arptables -p x -k firewall_sbin
+-w /usr/sbin/ebtables -p x -k firewall_sbin
+-w /sbin/xtables-nft-multi -p x -k firewall_sbin
+-w /usr/sbin/nft -p x -k firewall_sbin
+-w /usr/sbin/ufw -p x -k firewall_sbin
 
 ## Suspicious shells
--w /bin/ash -p x -k susp_shell
--w /bin/csh -p x -k susp_shell
--w /bin/dash -p x -k susp_shell
--w /bin/busybox -p x -k susp_shell
--w /bin/ksh -p x -k susp_shell
--w /bin/fish -p x -k susp_shell
--w /bin/tcsh -p x -k susp_shell
--w /bin/tclsh -p x -k susp_shell
--w /bin/zsh -p x -k susp_shell
+-w /bin/busybox -p x -k busybox
 
 ## Shell/profile configurations
 -w /etc/profile.d/ -p wa -k shell_profiles
@@ -339,42 +316,35 @@
 # Software Management ---------------------------------------------------------
 
 # RPM (Redhat/CentOS)
--w /usr/bin/rpm -p x -k software_mgmt
--w /usr/bin/yum -p x -k software_mgmt
+-w /usr/bin/rpm -p x -k package_manager 
+-w /usr/bin/yum -p x -k package_manager 
 
 # DNF (Fedora/RedHat 8/CentOS 8)
--w /usr/bin/dnf -p x -k software_mgmt
+-w /usr/bin/dnf -p x -k package_manager
 
 # YAST/Zypper/RPM (SuSE)
--w /sbin/yast -p x -k software_mgmt
--w /sbin/yast2 -p x -k software_mgmt
--w /bin/rpm -p x -k software_mgmt
--w /usr/bin/zypper -k software_mgmt
+-w /sbin/yast -p x -k package_manager 
+-w /sbin/yast2 -p x -k package_manager 
+-w /bin/rpm -p x -k package_manager 
+-w /usr/bin/zypper -k package_manager
 
 # DPKG / APT-GET (Debian/Ubuntu)
--w /usr/bin/dpkg -p x -k software_mgmt
--w /usr/bin/apt -p x -k software_mgmt
--w /usr/bin/apt-add-repository -p x -k software_mgmt
--w /usr/bin/apt-get -p x -k software_mgmt
--w /usr/bin/aptitude -p x -k software_mgmt
--w /usr/bin/wajig -p x -k software_mgmt
--w /usr/bin/snap -p x -k software_mgmt
+-w /usr/bin/dpkg -p x -k package_manager
+-w /usr/bin/apt -p x -k package_manager
+-w /usr/bin/apt-add-repository -p x -k package_manager
+-w /usr/bin/apt-get -p x -k package_manager
+-w /usr/bin/aptitude -p x -k package_manager
+-w /usr/bin/wajig -p x -k package_manager
+-w /usr/bin/snap -p x -k package_manager
 
 # PIP (Python installs)
--w /usr/bin/pip -p x -k software_mgmt
--w /usr/bin/pip3 -p x -k software_mgmt
+-w /usr/bin/pip -p x -k package_manager
+-w /usr/bin/pip3 -p x -k package_manager
 
-# Special Software ------------------------------------------------------------
-
-## GDS specific secrets
--w /etc/puppet/ssl -p wa -k puppet_ssl
-
-## IBM Bigfix BESClient
--a always,exit -F arch=b64 -S open -F dir=/opt/BESClient -F success=0 -k soft_besclient
--w /var/opt/BESClient/ -p wa -k soft_besclient
-
-## CHEF https://www.chef.io/chef/
--w /etc/chef -p wa -k soft_chef
+# Source Repositories
+-w /etc/yum.repos.d -p wa -k package_manager
+-w /etc/apt/sources.list -p wa -k package_manager
+-w /etc/apt/sources.list.d/ -p wa -k package_manager
 
 # High Volume Events ----------------------------------------------------------
 
@@ -388,16 +358,10 @@
 -a always,exit -F arch=b32 -S rmdir -S unlink -S unlinkat -S rename -S renameat -F auid>=1000 -F auid!=-1 -k delete
 -a always,exit -F arch=b64 -S rmdir -S unlink -S unlinkat -S rename -S renameat -F auid>=1000 -F auid!=-1 -k delete
 
-## 32bit API Exploitation
-### If you are on a 64 bit platform, everything _should_ be running
-### in 64 bit mode. This rule will detect any use of the 32 bit syscalls
-### because this might be a sign of someone exploiting a hole in the 32
-### bit API.
--a always,exit -F arch=b32 -S all -k 32bit_api
-
 # Brayden Werner Additions (EPIC!!1!!)  ---------------------------------------
 -w /var/www/ -p wa -k web
 -w /proc/sys/net/ipv4/icmp_echo_ignore_all -p wa -k icmp_break
+-w /etc/systemd/system/ -p wa -k service_modification
 
 
 # Make The Configuration Immutable --------------------------------------------

@@ -6,7 +6,7 @@ table ip mangle {
     chain input {
         type filter hook input priority 0; policy accept
         ip protocol icmp counter accept commment "Allow ICMP IN"
-        iifname "lo"  counter accept comment "Allow Loopback"  
+        iifname "lo" counter accept comment "Allow Loopback"  
         
         ## Inbound Rules
         # ip saddr 10.1.2.3  counter drop
