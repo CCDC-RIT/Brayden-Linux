@@ -1,6 +1,5 @@
 #!/bin/bash
 
-# Find Pesky GO files. The red teamers seem to love it. 
 # Find any large binary files
 
 # sudo find / -type f -executable -size +1M -exec strings {} + | grep 'go1\.'

@@ -20,6 +20,5 @@ find /etc/systemd/system -exec cat {} + | grep -E 'insmod|modprobe' 2> /dev/null
 find /var/spool/cron/crontabs/ -printf '\n%p\n---------------------------\n' -exec cat {} \; | grep -Ev '#'
 
 # TODO
-AuditD - AUSomthing
 Syslong
 https://restic.net/
