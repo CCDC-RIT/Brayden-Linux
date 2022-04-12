@@ -32,7 +32,7 @@
 
 ## Audit the audit logs
 ### Successful and unsuccessful attempts to read information from the audit records
--w /var/log/audit/ -k auditlog
+-w /var/log/audit/ -p r -k auditlog
 
 ## Auditd configuration
 ### Modifications to audit configuration that occur while the audit collection functions are operating
@@ -53,7 +53,7 @@
 -a always,exclude -F msgtype=AVC
 
 ## Ignore current working directory records
--a always,exclude -F msgtype=CWD
+-a always,exclude -F msgtype=CWD# 
 
 ## Cron jobs fill the logs with stuff we normally don't want (works with SELinux)
 -a never,user -F subj_type=crond_t
@@ -205,8 +205,8 @@
 -w /etc/exim4/ -p wa -k mail
 
 ## SSH configuration
--w /etc/ssh/sshd_config -k sshd
--w /etc/ssh/sshd_config.d -k sshd
+-w /etc/ssh/sshd_config -p wa -k sshd
+-w /etc/ssh/sshd_config.d -p wa -k sshd
 
 ## root ssh key tampering
 -w /root/.ssh -p wa -k root_ssh 
@@ -309,10 +309,6 @@
 -a always,exit -F arch=b32 -S ptrace -F a0=0x6 -k register_injection
 -a always,exit -F arch=b64 -S ptrace -F a0=0x6 -k register_injection
 
-## Privilege Abuse
-### The purpose of this rule is to detect when an admin may be abusing power by looking in user's home dir.
--a always,exit -F dir=/home -F uid=0 -F auid>=1000 -F auid!=-1 -C auid!=obj_uid -k power_abuse
-
 # Software Management ---------------------------------------------------------
 
 # RPM (Redhat/CentOS)
@@ -328,8 +324,7 @@
 -w /bin/rpm -p x -k package_manager 
 -w /usr/bin/zypper -k package_manager
 
-# DPKG / APT-GET (Debian/Ubuntu)
--w /usr/bin/dpkg -p x -k package_manager
+# APT-GET (Debian/Ubuntu) 
 -w /usr/bin/apt -p x -k package_manager
 -w /usr/bin/apt-add-repository -p x -k package_manager
 -w /usr/bin/apt-get -p x -k package_manager
@@ -355,8 +350,8 @@
 -a always,exit -F arch=b32 -F euid=0 -S execve -k rootcmd
 
 ## File Deletion Events by User
--a always,exit -F arch=b32 -S rmdir -S unlink -S unlinkat -S rename -S renameat -F auid>=1000 -F auid!=-1 -k delete
--a always,exit -F arch=b64 -S rmdir -S unlink -S unlinkat -S rename -S renameat -F auid>=1000 -F auid!=-1 -k delete
+# -a always,exit -F arch=b32 -S rmdir -S unlink -S unlinkat -S rename -S renameat -F auid>=1000 -F auid!=-1 -k delete
+# -a always,exit -F arch=b64 -S rmdir -S unlink -S unlinkat -S rename -S renameat -F auid>=1000 -F auid!=-1 -k delete
 
 # Brayden Werner Additions (EPIC!!1!!)  ---------------------------------------
 -w /var/www/ -p wa -k web

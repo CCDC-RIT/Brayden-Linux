@@ -19,6 +19,14 @@ find /etc/systemd/system -exec cat {} + | grep -E 'insmod|modprobe' 2> /dev/null
 # Find Autoruns
 find /var/spool/cron/crontabs/ -printf '\n%p\n---------------------------\n' -exec cat {} \; | grep -Ev '#'
 
+#####################
+##  AuditD Stuffs  ##
+#####################
+
+# View all event Keys Fired
+cat /var/log/audit/audit.log | grep -Ev "add_rule|remove_rule" | grep -o "key=\"*.*\"" | sort | uniq -c | sort -n
+
+
 # TODO
 # Syslong
 # https://restic.net/
